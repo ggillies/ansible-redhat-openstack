@@ -1,0 +1,43 @@
+---
+- name: disable NetworkManager
+  service: name=NetworkManager state=stopped enabled=no
+
+- name: disable firewalld
+  service: name=firewalld state=stopped enabled=no
+
+- name: symlink ml2 agent configuration as /etc/neutron/plugin.ini
+  file: src=/etc/neutron/plugins/openvswitch/ovs_neutron_plugin.ini dest=/etc/neutron/plugin.ini owner=neutron group=neutron state=link
+
+- name: create interface file for tunnel traffic
+  template: src=../../common/templates/ifcfg.j2 dest=/etc/sysconfig/network-scripts/ifcfg-{{ neutron_server_tunnel_interface }} owner=root group=root mode=0644
+  register: tunnel_interface
+
+- name: restart networking service
+  service: name=network state=restarted
+  when: tunnel_interface.changed
+
+#- name: open firewall for vxlan
+#  firewalld: port={{ item[1] }} state=enabled permanent={{ item [0] }}
+#  with_nested:
+#    - [ true, false ]
+#    - [ '4789/udp' ]
+
+- name: enable and start the openvswitch service
+  service: name=openvswitch state=started enabled=yes
+
+- name: Create the internal bridge for openvswitch
+  openvswitch_bridge: bridge=br-int state=present
+
+- name: Create the tunnel bridge for openvswitch
+  openvswitch_bridge: bridge=br-tun state=present
+
+- name: Ensure cleanup services run at boot
+  service: name={{ item }} enabled=yes
+  with_items:
+    - neutron-ovs-cleanup
+    - neutron-netns-cleanup
+
+- name: Start the neutron services
+  service: name={{ item }} state=started enabled=yes
+  with_items:
+    - neutron-openvswitch-agent

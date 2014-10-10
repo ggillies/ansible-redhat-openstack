@@ -1,0 +1,16 @@
+---
+redhat_username: REMOVED
+redhat_password: REMOVED
+#redhat_osp_pool_id: 8a85f98145f60e760145fb5cea16329b
+#redhat_osp_pool_id: Red\ Hat\ Enterprise\ Linux\ OpenStack\ Platform.*
+openstack_controller_public_address: 10.10.150.12
+cinder_glusterfs_shares:
+  - 10.10.150.14:/cinder
+glance_glusterfs_share: 10.10.150.14:/glance
+keystone_database_hostname: 10.10.150.12
+glance_database_hostname: 10.10.150.12
+nova_database_hostname: 10.10.150.12
+neutron_database_hostname: 10.10.150.12
+cinder_database_hostname: 10.10.150.12
+trove_database_hostname: 10.10.150.12
+heat_database_hostname: 10.10.150.12

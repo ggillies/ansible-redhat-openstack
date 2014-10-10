@@ -1,0 +1,23 @@
+---
+- name: install rabbitmq server
+  yum: name={{ item }}
+  with_items:
+    - rabbitmq-server
+
+- name: open firewall for rabbitmq server
+  firewalld: port={{ item[1] }} state=enabled permanent={{ item[0] }}
+  with_nested:
+    - [ true, false ]
+    - [ '5672/tcp', '4369/tcp', '9000-9005/tcp' ]
+
+- name: copy rabbitmq configuration file
+  template: src=rabbitmq.config.j2 dest=/etc/rabbitmq/rabbitmq.config owner=rabbitmq group=rabbitmq mode=0644
+
+#- name: copy rabbitmq-env configuration file
+#  template: src=rabbitmq-env.conf.j2 dest=/etc/rabbitmq/rabbitmq-env.conf owner=rabbitmq group=rabbitmq mode=0644
+
+- name: copy erlang cookie file
+  copy: content={{ rabbitmq_server_erlang_cookie }} dest=/var/lib/rabbitmq/.erlang.cookie owner=rabbitmq group=rabbitmq mode=0400
+
+- name: start rabbitmq service
+  service: name=rabbitmq-server state=started enabled=yes

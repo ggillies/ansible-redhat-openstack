@@ -1,0 +1,71 @@
+---
+- name: install mariadb-galera-server packages
+  yum: name={{ item }}
+  with_items:
+    - mariadb-galera-server
+    - MySQL-python
+    - rsync
+    - xinetd
+
+- name: open firewall for database server
+  firewalld: port={{ item[1] }} state=enabled permanent={{ item[0] }}
+  with_nested:
+    - [ true, false ]
+    - [ '3306/tcp', '4567/tcp', '4444/tcp', '9200/tcp' ]
+
+- name: deploy galera-monitor config file
+  copy: src=galera-monitor dest=/etc/xinetd.d/galera-monitor mode=0600 owner=root group=root
+
+- name: enable xinetd service
+  service: name=xinetd enabled=yes state=started
+
+- name: create mariadb systemd configuration directory
+  file: path=/etc/systemd/system/mariadb.service.d owner=root group=root mode=0755 state=directory
+  
+- name: copy mariadb galera configuration files
+  template: src={{ item.src }} dest={{ item.dest }} owner=root group=root mode=0644
+  with_items:
+    - { src: galera.cnf.j2, dest: /etc/my.cnf.d/galera.cnf }
+    - { src: openstack.cnf.j2, dest: /etc/my.cnf.d/openstack.cnf }
+    - { src: limits.conf.j2, dest: /etc/systemd/system/mariadb.service.d/limits.conf }
+
+- name: create pacemaker resource for galera
+  pcs_resource: command=create name=mariadb type=galera master=yes
+  args:
+    options:
+      enable_creation: "true"
+      wsrep_cluster_address: "gcomm://{{ groups['openstack-controller']|join(',') }}"
+    meta:
+      master-max: 2
+      ordered: "true"
+    operations:
+      - action: promote
+        options:
+          timeout: 300s
+          on-fail: block
+  run_once: true
+
+- name: wait for mariadb to settle and become active
+  pause: minutes=1
+
+#- name: start mariadb server
+#  service: name=mariadb state=started enabled=true
+
+- name: create clustercheck user
+  mysql_user: name={{ mariadb_galera_clustercheck_user }} host=localhost password={{ mariadb_galera_clustercheck_password }} state=present
+  run_once: true
+
+- name: populate clustercheck file
+  template: src=clustercheck.j2 dest=/etc/sysconfig/clustercheck owner=root group=root mode=0644
+
+- name: update mysql root password for all root accounts
+  mysql_user: name=root host={{ item }} password={{ mariadb_galera_root_password }} priv=*.*:ALL,GRANT append_privs=yes check_implicit_admin=yes
+  with_items:
+   - 127.0.0.1
+   - ::1
+   - "{{ inventory_hostname }}"
+   - localhost
+  run_once: true
+
+- name: copy .my.cnf file with root password credentials
+  template: src=.my.cnf.j2 dest=~/.my.cnf mode=0600

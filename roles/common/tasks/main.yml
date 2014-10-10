@@ -1,0 +1,29 @@
+---
+# The common tasks
+
+- name: disable selinux
+  selinux: state=permissive policy=targeted
+
+#- name: enable needed channels
+#  redhat_subscription: username={{ redhat_username }} password={{ redhat_password }} pool='{{ item }}'
+#  with_items:
+#    - 'Red Hat Enterprise Linux Server'
+#    - 'Red Hat Enterprise Linux OpenStack Platform for Controller Nodes, Premium (2-sockets)'
+#  register: redhat_subscription
+
+#- name: refresh repos from subscription manager
+#  shell: subscription-manager repos
+#  when: redhat_subscription.changed
+
+#- name: disable all yum repos
+#  shell: yum-config-manager --disable '*'
+#  when: redhat_subscription.changed
+
+#- name: enable repos we need only
+#  shell: subscription-manager repos --enable={{ item }}
+#  with_items:
+#    - rhel-7-server-openstack-5.0-rpms
+#  when: redhat_subscription.changed
+
+#- name: Disable iptables
+#  service: name=iptables state=stopped enabled=no

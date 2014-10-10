@@ -1,0 +1,4 @@
+---
+dependencies:
+  - { role: pacemaker-cluster, pacemaker_cluster_nodes: "{{ groups['openstack-network'] }}" }
+  - { role: neutron-server/network, neutron_database_hostname: "{{ openstack_controller_public_address }}" }

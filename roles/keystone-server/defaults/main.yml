@@ -1,0 +1,29 @@
+---
+keystone_admin_token: 012345CHANGEME012345
+keystone_database_username: keystone
+keystone_database_password: keystone
+keystone_database_hostname: localhost
+keystone_database_name: keystone
+
+keystone_admin_password: secrete
+
+openstack_service_users:
+  - { name: glance, password: glance }
+  - { name: cinder, password: cinder }
+  - { name: nova, password: nova }
+  - { name: neutron, password: neutron }
+  - { name: heat, password: heat }
+  - { name: cinder, password: cinder }
+  - { name: trove, password: trove }
+
+openstack_service_endpoints:
+  - { name: "keystone", endpoint_type: "identity", description: "Identity Service", public_url: "http://{{ openstack_controller_public_address }}:5000/v2.0", internal_url: "http://{{ openstack_controller_public_address }}:5000/v2.0", admin_url: "http://{{ openstack_controller_public_address }}:35357/v2.0" }
+  - { name: "glance", endpoint_type: "image", description: "Image Service", public_url: "http://{{ openstack_controller_public_address }}:9292/", internal_url: "http://{{ openstack_controller_public_address }}:9292/", admin_url: "http://{{ openstack_controller_public_address }}:9292/" }
+  - { name: "neutron", endpoint_type: "network", description: "Network Service", public_url: "http://{{ openstack_controller_public_address }}:9696/", internal_url: "http://{{ openstack_controller_public_address }}:9696/", admin_url: "http://{{ openstack_controller_public_address }}:9696/" }
+  - { name: "nova", endpoint_type: "compute", description: "Compute Service", public_url: "http://{{ openstack_controller_public_address }}:8774/v2/\\$(tenant_id)s", internal_url: "http://{{ openstack_controller_public_address }}:8774/v2/\\$(tenant_id)s", admin_url: "http://{{ openstack_controller_public_address }}:8774/v2/\\$(tenant_id)s" }
+  - { name: "heat", endpoint_type: "orchestration", description: "Orchestration Service", public_url: "http://{{ openstack_controller_public_address }}:8004/v1/\\$(tenant_id)s", internal_url: "http://{{ openstack_controller_public_address }}:8004/v1/\\$(tenant_id)s", admin_url: "http://{{ openstack_controller_public_address }}:8004/v1/\\$(tenant_id)s" }
+  - { name: "heat-cfn", endpoint_type: "cloudformation", description: "Cloudformation Service", public_url: "http://{{ openstack_controller_public_address }}:8000/v1/", internal_url: "http://{{ openstack_controller_public_address }}:8000/v1/", admin_url: "http://{{ openstack_controller_public_address }}:8000/v1/" }
+  - { name: "cinder", endpoint_type: "volume", description: "Volume Service", public_url: "http://{{ openstack_controller_public_address }}:8776/v1/\\$(tenant_id)s", internal_url: "http://{{ openstack_controller_public_address }}:8776/v1/\\$(tenant_id)s", admin_url: "http://{{ openstack_controller_public_address }}:8776/v1/\\$(tenant_id)s" }
+  - { name: "trove", endpoint_type: "database", description: "Database Service", public_url: "http://{{ openstack_controller_public_address }}:8779/v1.0/\\$(tenant_id)s", internal_url: "http://{{ openstack_controller_public_address }}:8779/v1.0/\\$(tenant_id)s", admin_url: "http://{{ openstack_controller_public_address }}:8779/v1.0/\\$(tenant_id)s" }
+
+pacemaker_service_control: false

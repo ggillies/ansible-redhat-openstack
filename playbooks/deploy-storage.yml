@@ -1,0 +1,4 @@
+---
+- hosts: openstack-storage
+  roles:
+    - glusterfs-server

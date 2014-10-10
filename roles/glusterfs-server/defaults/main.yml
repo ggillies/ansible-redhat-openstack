@@ -1,0 +1,8 @@
+---
+glusterfs_volgroup:
+  - { name: data, pvs: /dev/vdb }
+glusterfs_peers: "{{ play_hosts }}"
+glusterfs_bricks:
+  - { name: test, size: 10g, vg: data }
+glusterfs_volumes:
+  - { name: test, create_options: replica 2, brick_list: "{{ glusterfs_peers | join(':/bricks/test/brick ') }}:/bricks/test/brick", settings: ['cluster.server-quorum-type server', 'cluster.quorum-type auto'] }

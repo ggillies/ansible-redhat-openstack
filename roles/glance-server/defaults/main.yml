@@ -1,0 +1,9 @@
+---
+glance_database_username: glance
+glance_database_password: glance
+glance_database_hostname: localhost
+glance_database_name: glance
+
+glance_admin_password: secrete
+
+pacemaker_service_control: false

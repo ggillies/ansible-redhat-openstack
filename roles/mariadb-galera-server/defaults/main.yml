@@ -1,0 +1,11 @@
+---
+mariadb_galera_root_password: redhat
+mariadb_galera_clustercheck_user: clustercheck
+mariadb_galera_clustercheck_password: clustercheck
+mariadb_galera_bind_address: "{{ ansible_default_ipv4.address }}"
+mariadb_galera_wsrep_provider: /usr/lib64/galera/libgalera_smm.so
+mariadb_galera_wsrep_provider_options: socket.ssl=false; socket.ssl_key=/etc/pki/galera/galera.key; socket.ssl_cert=/etc/pki/galera/galera.crt;
+mariadb_galera_wsrep_cluster_name: mycluster
+mariadb_galera_wsrep_debug: 0
+mariadb_galera_wsrep_sst_method: rsync
+mariadb_galera_wsrep_sst_auth: 'root:'

@@ -1,0 +1,37 @@
+---
+- name: install heat packages
+  yum: name={{ item }}
+  with_items:
+    - openstack-heat-api
+    - openstack-heat-api-cfn
+    - openstack-heat-api-cloudwatch
+    - openstack-heat-engine
+
+- name: copy heat configuration file
+  template: src=heat.conf.j2 dest=/etc/heat/heat.conf
+
+- name: create heat database
+  mysql_db: name=heat
+  run_once: true
+
+- name: create heat database user
+  mysql_user: name={{ heat_database_username }} host=% password={{ heat_database_password }} priv={{ heat_database_name }}.*:ALL
+  run_once: true
+
+- name: synchronise heat database
+  shell: creates=/etc/heat/db.synced /usr/bin/heat-manage db_sync && touch /etc/heat/db.synced
+  run_once: true
+
+- name: open firewall for heat
+  firewalld: port={{ item[1] }} state=enabled permanent={{ item [0] }}
+  with_nested:
+    - [ true, false ]
+    - [ '8000/tcp', '8003/tcp', '8004/tcp' ]
+
+- name: start heat services and make sure they are running
+  service: name={{ item }} state=running enabled=yes
+  with_items:
+    - openstack-heat-api
+    - openstack-heat-api-cfn
+    - openstack-heat-api-cloudwatch
+    - openstack-heat-engine

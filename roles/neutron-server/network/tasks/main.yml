@@ -1,0 +1,98 @@
+---
+
+- name: disable NetworkManager
+  service: name=NetworkManager state=stopped enabled=no
+
+- name: disable firewalld
+  service: name=firewalld state=stopped enabled=no
+
+- name: symlink ml2 agent configuration as /etc/neutron/plugin.ini
+  file: src=/etc/neutron/plugins/openvswitch/ovs_neutron_plugin.ini dest=/etc/neutron/plugin.ini owner=neutron group=neutron state=link
+
+- name: create interface file for tunnel traffic
+  template: src=../../common/templates/ifcfg.j2 dest=/etc/sysconfig/network-scripts/ifcfg-{{ neutron_server_tunnel_interface }} owner=root group=root mode=0644
+  register: tunnel_interface
+
+- name: restart networking service
+  service: name=network state=restarted
+  when: tunnel_interface.changed
+
+#- name: open firewall for vxlan
+#  firewalld: port={{ item[1] }} state=enabled permanent={{ item [0] }}
+#  with_nested:
+#    - [ true, false ]
+#    - [ '4789/udp' ]
+
+- name: enable and start the openvswitch service
+  service: name=openvswitch state=started enabled=yes
+
+- name: Create the internal bridge for openvswitch
+  openvswitch_bridge: bridge=br-int state=present
+
+- name: Create the tunnel bridge for openvswitch
+  openvswitch_bridge: bridge=br-tun state=present
+
+- name: Create the external bridge for openvswitch
+  openvswitch_bridge: bridge=br-ex state=present
+
+- name: Add the interface for the external bridge
+  openvswitch_port: bridge=br-ex state=present port={{ openstack_network_external_interface }}
+
+- name: Ensure cleanup services are not set to run at boot
+  service: name={{ item }} enabled=no
+  with_items:
+    - neutron-ovs-cleanup
+    - neutron-netns-cleanup
+
+- name: create pacemaker resource for ovs cleanup
+  pcs_resource: command=create name=neutron-ovs-cleanup type=ocf:neutron:OVSCleanup group=neutron-agents-pre
+  run_once: true
+
+- name: create pacemaker resource for netns cleanup
+  pcs_resource: command=create name=neutron-netns-cleanup type=ocf:neutron:NetnsCleanup group=neutron-agents-pre
+  run_once: true
+
+- name: create pacemaker resource for neutron openvswitch agent
+  pcs_resource: command=create name=neutron-openvswitch-agent type=systemd:neutron-openvswitch-agent group=neutron-agents
+  args:
+    operations:
+      - action: monitor
+        options:
+          start-delay: 10s
+  run_once: true
+
+- name: create pacemaker resource for neutron dhcp agent
+  pcs_resource: command=create name=neutron-dhcp-agent type=systemd:neutron-dhcp-agent group=neutron-agents
+  args:
+    operations:
+      - action: monitor
+        options:
+          start-delay: 10s
+  run_once: true
+
+- name: create pacemaker resource for neutron l3 agent
+  pcs_resource: command=create name=neutron-l3-agent type=systemd:neutron-l3-agent group=neutron-agents
+  args:
+    operations:
+      - action: monitor
+        options:
+          start-delay: 10s
+  run_once: true
+
+- name: create pacemaker resource for neutron metadata agent
+  pcs_resource: command=create name=neutron-metadata-agent type=systemd:neutron-metadata-agent group=neutron-agents
+  args:
+    operations:
+      - action: monitor
+        options:
+          start-delay: 10s
+  run_once: true
+
+- name: create pacemaker resource for neutron LBaaS agent
+  pcs_resource: command=create name=neutron-lbaas-agent type=systemd:neutron-lbaas-agent group=neutron-agents
+  args:
+    operations:
+      - action: monitor
+        options:
+          start-delay: 10s
+  run_once: true

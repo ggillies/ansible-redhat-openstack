@@ -1,0 +1,10 @@
+---
+glusterfs_volgroup:
+  - { name: data, pvs: /dev/sdb1 }
+glusterfs_peers: ['10.10.150.14', '10.10.150.18']
+glusterfs_bricks:
+  - { name: cinder, size: 400g, vg: data }
+  - { name: glance, size: 400g, vg: data }
+glusterfs_volumes:
+  - { name: cinder, create_options: replica 2, brick_list: "{{ glusterfs_peers | join(':/bricks/cinder/brick ') }}:/bricks/cinder/brick", settings: ['cluster.server-quorum-type server', 'cluster.quorum-type auto'] }
+  - { name: glance, create_options: replica 2, brick_list: "{{ glusterfs_peers | join(':/bricks/glance/brick ') }}:/bricks/glance/brick", settings: ['cluster.server-quorum-type server', 'cluster.quorum-type auto'] }

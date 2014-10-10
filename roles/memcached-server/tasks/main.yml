@@ -1,0 +1,14 @@
+---
+- name: install memcached packages
+  yum: name={{ item }}
+  with_items:
+    - memcached
+
+- name: open firewall for memcached
+  firewalld: port={{ item[1] }} state=enabled permanent={{ item [0] }}
+  with_nested:
+    - [ true, false ]
+    - [ '11211/tcp' ]
+
+- name: start and enable memcached service
+  service: name=memcached state=started enabled=yes

@@ -1,0 +1,5 @@
+---
+trove_database_username: trove
+trove_database_password: trove
+trove_database_hostname: localhost
+trove_database_name: trove

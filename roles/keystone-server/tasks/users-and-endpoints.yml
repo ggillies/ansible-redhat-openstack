@@ -1,0 +1,26 @@
+---
+- name: create service tenant in keystone
+  keystone_user: endpoint=http://{{ openstack_controller_public_address }}:35357/v2.0/ tenant=service tenant_description='tenant for openstack services' token={{ keystone_admin_token }}
+  run_once: true
+  register: keystone_service_tenant
+
+- name: create admin user in keystone
+  keystone_user: endpoint=http://{{ openstack_controller_public_address }}:35357/v2.0/ user=admin tenant=service password={{ keystone_admin_password }} token={{ keystone_admin_token }}
+  run_once: true
+
+- name: create service users in keystone
+  keystone_user: endpoint=http://{{ openstack_controller_public_address }}:35357/v2.0/ user={{ item.name }} tenant=service password={{ item.password }} token={{ keystone_admin_token }}
+  with_items: openstack_service_users
+  run_once: true
+
+- name: assign admin role to service users
+  keystone_user: endpoint=http://{{ openstack_controller_public_address }}:35357/v2.0/ role=admin user={{ item.name }} tenant=service token={{ keystone_admin_token }}
+  with_items:
+    - "{{ openstack_service_users }}"
+    - { name: "admin" }
+  run_once: true
+
+- name: create keystone endpoints
+  keystone_service: endpoint=http://{{ openstack_controller_public_address }}:35357/v2.0/ token={{ keystone_admin_token }} name={{ item.name }} type={{ item.endpoint_type }} description="{{ item.description }}" region="RegionOne" public_url={{ item.public_url }} internal_url={{ item.internal_url }} admin_url={{ item.admin_url }}
+  with_items: openstack_service_endpoints
+  run_once: true

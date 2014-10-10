@@ -1,0 +1,5 @@
+---
+neutron_server_tunnel_interface: p2p2
+neutron_server_local_ip: 172.16.0.2
+openstack_network_external_interface: p3p1
+pacemaker_cluster_stonith_settings: fence_ipmilan auth=md5 ipaddr=openstack-network-02-drac.example.com login=root passwd=secret action=reboot pcmk_host_check=static-list pcmk_host_list=openstack-network-02.example.com

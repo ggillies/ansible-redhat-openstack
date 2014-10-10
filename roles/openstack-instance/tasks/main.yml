@@ -1,0 +1,41 @@
+---
+- name: create openstack instance
+  nova_compute:
+    name: "{{ inventory_hostname }}"
+    auth_url: "{{ openstack_auth_url }}"
+    flavor_id: "{{ openstack_flavor_id }}"
+    image_id: "{{ openstack_image_id }}"
+    key_name: "{{ openstack_key_name }}"
+    login_username: "{{ openstack_login_username }}"
+    login_password: "{{ openstack_login_password }}"
+    login_tenant_name: "{{ openstack_login_tenant_name }}"
+    nics:
+      - net-id: "{{ openstack_net_id }}"
+    region_name: "{{ openstack_region_name }}"
+    security_groups: default
+    wait_for: 500
+  register: nova
+
+- name: assign floating ip to instance
+  when: floating_ip is defined
+  quantum_floating_ip:
+    auth_url: "{{ openstack_auth_url }}"
+    instance_name: "{{ inventory_hostname }}"
+    login_username: "{{ openstack_login_username }}"
+    login_password: "{{ openstack_login_password }}"
+    login_tenant_name: "{{ openstack_login_tenant_name }}"
+    network_name: public
+    region_name: "{{ openstack_region_name }}"
+  register: quantum
+
+- name: wait for openstack instance to boot on public_ip
+  wait_for:
+    host: "{{ quantum.public_ip }}"
+    port: 22
+  when: quantum.public_ip is defined
+
+- name: wait for openstack instance to boot on private_ip
+  wait_for:
+    host: "{{ nova.private_ip }}"
+    port: 22
+  when: quantum.public_ip is not defined

@@ -1,0 +1,5 @@
+---
+heat_database_username: heat
+heat_database_password: heat
+heat_database_hostname: localhost
+heat_database_name: heat

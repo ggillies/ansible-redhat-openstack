@@ -1,0 +1,39 @@
+---
+# Tasks for the neutron controller node
+
+- name: Install packages for neutron
+  yum: name={{ item }} state=installed
+  with_items:
+   - openstack-neutron
+   - openstack-neutron-ml2
+   - openstack-neutron-openvswitch
+   - net-tools
+   - haproxy
+
+- name: set sysctl settings in the host
+  sysctl: name={{ item.name }} value={{ item.value }} reload=yes
+  with_items:
+    - { name: net.ipv4.ip_forward, value: 1 }
+    - { name: net.ipv4.conf.all.rp_filter, value: 0 }
+    - { name: net.ipv4.conf.default.rp_filter, value: 0 }
+
+- name: Copy the neutron.conf configuration file 
+  template: src=neutron.conf.j2 dest=/etc/neutron/neutron.conf
+
+- name: Copy the neutron metadata agent configuration file
+  template: src=metadata_agent.ini.j2 dest=/etc/neutron/metadata_agent.ini
+
+- name: Copy the neutron ml2 agent configuration file
+  template: src=ml2_conf.ini.j2 dest=/etc/neutron/plugins/ml2/ml2_conf.ini
+
+- name: Copy the neutron ovs agent configuration file 
+  template: src=ovs_neutron_plugin.ini.j2 dest=/etc/neutron/plugins/openvswitch/ovs_neutron_plugin.ini
+
+- name: Copy the neutron l3 agent configuration file 
+  template: src=l3_agent.ini.j2 dest=/etc/neutron/l3_agent.ini
+
+- name: Copy the neutron lbaas agent configuration file 
+  template: src=lbaas_agent.ini.j2 dest=/etc/neutron/lbaas_agent.ini
+
+- name: Copy the neutron dhcp agent configuration file 
+  template: src=dhcp_agent.ini.j2 dest=/etc/neutron/dhcp_agent.ini

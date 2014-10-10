@@ -1,0 +1,197 @@
+#---------------------------------------------------------------------
+
+# full configuration options online.
+#
+#   http://haproxy.1wt.eu/download/1.4/doc/configuration.txt
+#
+#---------------------------------------------------------------------
+
+#---------------------------------------------------------------------
+# Global settings
+#---------------------------------------------------------------------
+global
+    # to have these messages end up in /var/log/haproxy.log you will
+    # need to:
+    #
+    # 1) configure syslog to accept network log events.  This is done
+    #    by adding the '-r' option to the SYSLOGD_OPTIONS in
+    #    /etc/sysconfig/syslog
+    #
+    # 2) configure local2 events to go to the /var/log/haproxy.log
+    #   file. A line like the following can be added to
+    #   /etc/sysconfig/syslog
+    #
+    #    local2.*                       /var/log/haproxy.log
+    #
+    log         127.0.0.1 local2
+
+    chroot      /var/lib/haproxy
+    pidfile     /var/run/haproxy.pid
+    maxconn     4000
+    user        haproxy
+    group       haproxy
+    daemon
+
+    # turn on stats unix socket
+    stats socket /var/lib/haproxy/stats
+
+#---------------------------------------------------------------------
+# common defaults that all the 'listen' and 'backend' sections will
+# use if not designated in their block
+#---------------------------------------------------------------------
+defaults
+    mode                    http
+    log                     global
+    option                  httplog
+#    option                  dontlognull
+#    option http-server-close
+#    option forwardfor       except 127.0.0.0/8
+    option                  redispatch
+    retries                 3
+#    timeout http-request    10s
+#    timeout queue           1m
+    timeout connect         10s
+    timeout client          1m
+    timeout server          1m
+#    timeout http-keep-alive 10s
+#    timeout check           10s
+#    maxconn                 3000
+#
+
+#
+# Openstack Services
+#
+frontend mariadb
+    mode tcp
+    bind {{ openstack_controller_public_address }}:3306
+    timeout client 90s
+    default_backend db-mariadb
+
+backend db-mariadb
+    mode tcp
+    option httpchk
+    stick-table type ip size 2
+    stick on dst
+    timeout server 90s
+{% for host in groups['openstack-controller'] %}
+    server {{ hostvars[host]['ansible_hostname'] }} {{ hostvars[host]['ansible_fqdn'] }}:3306 check inter 1s port 9200
+{% endfor %}
+
+#
+# Openstack API
+#
+
+# Keystone
+listen keystone_api {{ openstack_controller_public_address }}:5000
+    balance roundrobin
+    option httpchk
+{% for host in groups['openstack-controller'] %}
+    server {{ hostvars[host]['ansible_hostname'] }} {{ hostvars[host]['ansible_fqdn'] }}:5000 check
+{% endfor %}
+
+listen keystone_admin_api {{ openstack_controller_public_address }}:35357
+    balance roundrobin
+    option httpchk
+{% for host in groups['openstack-controller'] %}
+    server {{ hostvars[host]['ansible_fqdn'] }} {{ hostvars[host]['ansible_fqdn'] }}:35357 check
+{% endfor %}
+
+# Glance
+listen glance {{ openstack_controller_public_address }}:9292
+    balance roundrobin
+    option httpchk
+{% for host in groups['openstack-controller'] %}
+    server {{ hostvars[host]['ansible_fqdn'] }} {{ hostvars[host]['ansible_fqdn'] }}:9292 check
+{% endfor %}
+
+# Nova_ec2
+listen nova_ec2_api {{ openstack_controller_public_address }}:8773
+    balance roundrobin
+{% for host in groups['openstack-controller'] %}
+    server {{ hostvars[host]['ansible_fqdn'] }} {{ hostvars[host]['ansible_fqdn'] }}:8773 check
+{% endfor %}
+
+# Nova_api
+listen nova_api_api {{ openstack_controller_public_address }}:8774
+    balance roundrobin
+    option httpchk
+{% for host in groups['openstack-controller'] %}
+    server {{ hostvars[host]['ansible_fqdn'] }} {{ hostvars[host]['ansible_fqdn'] }}:8774 check
+{% endfor %}
+
+# Nova_novncproxy
+listen nova_novncproxy_api {{ openstack_controller_public_address }}:6080
+    balance roundrobin
+    option httpchk GET /vnc_auto.html
+{% for host in groups['openstack-controller'] %}
+    server {{ hostvars[host]['ansible_fqdn'] }} {{ hostvars[host]['ansible_fqdn'] }}:6080 check
+{% endfor %}
+
+# Cinder
+listen cinder_api {{ openstack_controller_public_address }}:8776
+    balance roundrobin
+    option httpchk
+{% for host in groups['openstack-controller'] %}
+    server {{ hostvars[host]['ansible_fqdn'] }} {{ hostvars[host]['ansible_fqdn'] }}:8776 check
+{% endfor %}
+
+# Quantum
+listen quantum_api {{ openstack_controller_public_address }}:9696
+    balance roundrobin
+    option httpchk
+{% for host in groups['openstack-controller'] %}
+    server {{ hostvars[host]['ansible_fqdn'] }} {{ hostvars[host]['ansible_fqdn'] }}:9696 check
+{% endfor %}
+
+# Heat cfn api
+listen heat_cfn_api {{ openstack_controller_public_address }}:8000
+    balance roundrobin
+    option httpchk
+{% for host in groups['openstack-controller'] %}
+    server {{ hostvars[host]['ansible_fqdn'] }} {{ hostvars[host]['ansible_fqdn'] }}:8000 check
+{% endfor %}
+
+# Heat cloudwatch api
+listen heat_cloudwatch_api {{ openstack_controller_public_address }}:8003
+    balance roundrobin
+    option httpchk
+{% for host in groups['openstack-controller'] %}
+    server {{ hostvars[host]['ansible_fqdn'] }} {{ hostvars[host]['ansible_fqdn'] }}:8003 check
+{% endfor %}
+
+# Heat api
+listen heat_api_api {{ openstack_controller_public_address }}:8004
+    balance roundrobin
+    option httpchk
+{% for host in groups['openstack-controller'] %}
+    server {{ hostvars[host]['ansible_fqdn'] }} {{ hostvars[host]['ansible_fqdn'] }}:8004 check
+{% endfor %}
+
+# Trove api
+listen trove_api {{ openstack_controller_public_address }}:8779
+    balance roundrobin
+    option httpchk
+{% for host in groups['openstack-controller'] %}
+    server {{ hostvars[host]['ansible_fqdn'] }} {{ hostvars[host]['ansible_fqdn'] }}:8779 check
+{% endfor %}
+
+# HTTP
+listen http_api {{ openstack_controller_public_address }}:80
+    cookie SERVERID insert indirect nocache
+    balance roundrobin
+    option httpchk
+{% for host in groups['openstack-controller'] %}
+    server {{ hostvars[host]['ansible_fqdn'] }} {{ hostvars[host]['ansible_fqdn'] }}:80 check cookie {{ hostvars[host]['ansible_hostname'] }}
+{% endfor %}
+
+# HTTPS
+listen https_api {{ openstack_controller_public_address }}:443
+    balance roundrobin
+    mode tcp
+{% for host in groups['openstack-controller'] %}
+    server {{ hostvars[host]['ansible_fqdn'] }} {{ hostvars[host]['ansible_fqdn'] }}:443 check
+{% endfor %}
+
+# Stats
+listen stats_api *:1337
+    stats enable

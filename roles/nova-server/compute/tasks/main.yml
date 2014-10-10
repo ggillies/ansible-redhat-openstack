@@ -1,0 +1,13 @@
+- name: install glusterfs packages
+  yum: name=glusterfs-fuse
+
+#- name: open firewall for nova
+#  firewalld: port={{ item[1] }} state=enabled permanent={{ item [0] }}
+#  with_nested:
+#    - [ true, false ]
+#    - [ '5900-5999/tcp' ]
+
+- name: Start the services for nova
+  service: name={{ item }} state=started enabled=yes
+  with_items:
+   - openstack-nova-compute

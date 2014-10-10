@@ -1,0 +1,31 @@
+---
+- name: install trove packages
+  yum: name={{ item }}
+  with_items:
+    - openstack-trove
+    - python-troveclient
+
+- name: copy trove configuration file
+  template: src={{ item.template_name }} dest={{ item.template_dest }}
+  with_items:
+    - { template_name: trove.conf.j2, template_dest: /etc/trove/trove.conf }
+    - { template_name: trove-conductor.conf.j2, template_dest: /etc/trove/trove-conductor.conf }
+    - { template_name: trove-taskmanager.conf.j2, template_dest: /etc/trove/trove-taskmanager.conf }
+
+- name: Setup DB for trove
+  shell: /usr/bin/openstack-db --init --service trove -r {{ mariadb_galera_root_password }} -y
+         creates=/var/lib/mysql/trove
+  run_once: true
+
+- name: open firewall for trove
+  firewalld: port={{ item[1] }} state=enabled permanent={{ item [0] }}
+  with_nested:
+    - [ true, false ]
+    - [ '8779/tcp' ]
+
+- name: start cinder services and make sure they are running
+  service: name={{ item }} state=running enabled=yes
+  with_items:
+    - openstack-trove-api
+    - openstack-trove-conductor
+    - openstack-trove-taskmanager

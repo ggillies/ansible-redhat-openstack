@@ -1,0 +1,68 @@
+---
+- name: Install glance OpenStack components
+  yum: name={{ item }} state=installed
+  with_items:
+    - openstack-glance
+    - python-glanceclient
+
+- name: Copy configuration files for glance
+  template: src=glance-api.conf.j2 dest=/etc/glance/glance-api.conf
+
+- name: Copy configuration files for glance
+  template: src=glance-registry.conf.j2 dest=/etc/glance/glance-registry.conf
+
+- name: create glance database
+  mysql_db: name=glance
+  run_once: true
+
+- name: create glance database user
+  mysql_user: name={{ glance_database_username }} host=% password={{ glance_database_password }} priv={{ glance_database_name }}.*:ALL
+  run_once: true
+
+- name: DB sync for Glance
+  shell: /usr/bin/glance-manage db_sync && touch /etc/glance/db.synced
+         creates=/etc/glance/db.synced
+  run_once: true
+
+- name: open firewall for glance
+  firewalld: port={{ item[1] }} state=enabled permanent={{ item [0] }}
+  with_nested:
+    - [ true, false ]
+    - [ '9292/tcp' ]
+
+- name: mount glusterfs shared storage for glance
+  mount: name=/var/lib/glance/images src={{ glance_glusterfs_share }} fstype=glusterfs opts=defaults,_netdev state=mounted
+  when: glance_glusterfs_share is defined
+
+- name: start the glance services
+  service: name={{ item }} state=started enabled=yes
+  with_items:
+    - openstack-glance-api
+    - openstack-glance-registry
+  when: pacemaker_service_control == false
+
+- name: create the glance-registry resource within pacemaker
+  pcs_resource:
+    command: create
+    name: openstack-glance-registry
+    type: systemd:openstack-glance-registry
+    clone: yes
+    operations:
+      - action: monitor
+        options:
+          start-delay: 10s
+  run_once: true
+  when: pacemaker_service_control == true
+
+- name: create the glance-api resource within pacemaker
+  pcs_resource:
+    command: create
+    name: openstack-glance-api
+    type: systemd:openstack-glance-api
+    clone: yes
+    operations:
+      - action: monitor
+        options:
+          start-delay: 10s
+  run_once: true
+  when: pacemaker_service_control == true

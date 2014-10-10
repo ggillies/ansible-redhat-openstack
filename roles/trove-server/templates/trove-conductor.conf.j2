@@ -1,0 +1,10 @@
+[DEFAULT]
+verbose = True
+debug = True
+control_exchange = trove
+trove_auth_url = http://{{ openstack_controller_public_address }}:5000/v2.0
+rabbit_host={{ openstack_controller_public_address }}
+rabbit_port=5672
+rabbit_userid=guest
+rabbit_password=guest
+rabbit_ha_queues=true

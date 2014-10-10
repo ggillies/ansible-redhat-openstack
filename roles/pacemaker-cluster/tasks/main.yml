@@ -1,0 +1,39 @@
+---
+- name: install pacemaker
+  yum: name={{ item }}
+  with_items:
+    - pacemaker
+    - pcs
+    - fence-agents-all
+
+- name: open firewall for pacemaker
+  firewalld: service={{ item[1] }} state=enabled permanent={{ item[0] }}
+  with_nested:
+    - [ true, false ]
+    - [ 'high-availability' ]
+  ignore_errors: true
+
+- name: start pcsd service
+  service: name=pcsd state=started enabled=yes
+
+- name: set password for hacluster user
+  user: name=hacluster password={{ pacemaker_cluster_encrypted_password }}
+
+- name: authenticate all cluster nodes
+  shell: creates=/var/lib/pcsd/tokens pcs cluster auth -u hacluster -p {{ pacemaker_cluster_password }} {{ pacemaker_cluster_nodes | join(' ') }}
+  run_once: true
+
+- name: create cluster
+  shell: creates=/var/lib/pacemaker/cib/cib.xml pcs cluster setup --start --name {{ pacemaker_cluster_name }} {{ pacemaker_cluster_nodes | join(' ') }}
+  run_once: true
+
+- name: determine if stonith device already exists
+  shell: pcs stonith show {{ inventory_hostname }}-stonith
+  changed_when: false
+  failed_when: false
+  always_run: yes
+  register: stonith_output
+
+- name: create stonith devices
+  shell: pcs stonith create {{ inventory_hostname }}-stonith {{ pacemaker_cluster_stonith_settings }}
+  when: stonith_output.rc != 0

@@ -1,0 +1,7 @@
+---
+cinder_database_username: cinder
+cinder_database_password: cinder
+cinder_database_hostname: localhost
+cinder_database_name: cinder
+
+pacemaker_service_control: false

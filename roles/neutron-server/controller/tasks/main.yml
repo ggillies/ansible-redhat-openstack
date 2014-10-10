@@ -1,0 +1,29 @@
+---
+
+- name: symlink ml2 agent configuration as /etc/neutron/plugin.ini
+  file: src=/etc/neutron/plugins/ml2/ml2_conf.ini dest=/etc/neutron/plugin.ini owner=neutron group=neutron state=link
+
+- name: create neutron database
+  mysql_db: name=neutron
+  run_once: true
+
+- name: create neutron database user
+  mysql_user: name={{ neutron_database_username }} host=% password={{ neutron_database_password }} priv={{ neutron_database_name }}.*:ALL
+  run_once: true
+
+- name: DB sync for the neutron services
+  #shell: creates=/etc/neutron/db.synced /usr/bin/neutron-db-manage upgrade head && touch /etc/neutron/db.synced
+  shell: neutron-db-manage --config-file /usr/share/neutron/neutron-dist.conf --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugin.ini upgrade head && touch /etc/neutron/db.synced
+         creates=/etc/neutron/db.synced
+  run_once: true
+
+- name: open firewall for neutron
+  firewalld: port={{ item[1] }} state=enabled permanent={{ item [0] }}
+  with_nested:
+    - [ true, false ]
+    - [ '9696/tcp' ]
+
+- name: Start the neutron services
+  service: name={{ item }} state=started enabled=yes
+  with_items:
+   - neutron-server

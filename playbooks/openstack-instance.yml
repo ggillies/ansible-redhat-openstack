@@ -1,0 +1,7 @@
+---
+- hosts: openstack-instance
+  gather_facts: false
+  serial: 5
+  connection: local
+  roles:
+    - openstack-instance

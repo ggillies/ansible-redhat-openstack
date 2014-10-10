@@ -1,0 +1,3 @@
+inventory/nova.ini
+inventory/group_vars/openstack-instance
+inventory/group_vars/openstack-instance-nova-network

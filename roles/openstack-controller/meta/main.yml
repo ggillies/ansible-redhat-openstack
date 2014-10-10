@@ -1,0 +1,15 @@
+---
+dependencies:
+  - { role: pacemaker-cluster, pacemaker_cluster_nodes: "{{ groups['openstack-controller'] }}" }
+  - haproxy-server
+  - mariadb-galera-server
+  - rabbitmq-server
+  - memcached-server
+  - { role: keystone-server, keystone_database_hostname: "{{ openstack_controller_public_address }}" }
+  - { role: glance-server, glance_database_hostname: "{{ openstack_controller_public_address }}" }
+  - { role: cinder-server, cinder_database_hostname: "{{ openstack_controller_public_address }}" }
+  - { role: neutron-server/controller, neutron_database_hostname: "{{ openstack_controller_public_address }}" }
+  - { role: nova-server/controller, nova_database_hostname: "{{ openstack_controller_public_address }}" }
+  - { role: heat-server, heat_database_hostname: "{{ openstack_controller_public_address }}" }
+  #- trove-server
+  - horizon-server

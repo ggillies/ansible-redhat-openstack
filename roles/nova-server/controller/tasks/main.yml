@@ -1,0 +1,30 @@
+---
+- name: create nova database
+  mysql_db: name=nova
+  run_once: true
+
+- name: create nova database user
+  mysql_user: name={{ nova_database_username }} host=% password={{ nova_database_password }} priv={{ nova_database_name }}.*:ALL
+  run_once: true
+
+- name: DB sync for the nova services
+  shell: nova-manage db sync && touch /etc/nova/db.synced
+         creates=/etc/nova/db.synced
+  run_once: true
+
+- name: open firewall for nova
+  firewalld: port={{ item[1] }} state=enabled permanent={{ item [0] }}
+  with_nested:
+    - [ true, false ]
+    - [ '9696/tcp', '8773/tcp', '8774/tcp', '8775/tcp', '6080/tcp' ]
+
+- name: Start the services for nova
+  service: name={{ item }} state=started enabled=yes
+  with_items:
+   - openstack-nova-api
+   - openstack-nova-scheduler
+   - openstack-nova-cert
+   - openstack-nova-console
+   - openstack-nova-conductor
+   - openstack-nova-consoleauth
+   - openstack-nova-novncproxy

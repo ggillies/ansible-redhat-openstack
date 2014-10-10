@@ -1,0 +1,5 @@
+---
+neutron_database_username: neutron
+neutron_database_password: neutron
+neutron_database_hostname: localhost
+neutron_database_name: neutron

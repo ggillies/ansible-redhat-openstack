@@ -1,0 +1,5 @@
+---
+pacemaker_cluster_password: changeme
+pacemaker_cluster_encrypted_password: $5$rounds=40000$gG7US6hqGOskPCGX$K5SsJXlMHUTEveTjXWhys2KbJifWBEUbVhAHil8BeM9
+pacemaker_cluster_name: mycluster
+pacemaker_cluster_nodes: []

@@ -1,0 +1,50 @@
+---
+- name: Install OpenStack keystone packages.
+  yum: name={{ item }} state=installed
+  with_items:
+   - openstack-keystone
+   - python-keystoneclient
+   - openstack-utils
+
+- name: Copy the configuration files for keystone
+  template: src=keystone.conf.j2 dest=/etc/keystone/keystone.conf
+
+- name: create keystone database
+  mysql_db: name=keystone
+  run_once: true
+
+- name: create keystone database user
+  mysql_user: name={{ keystone_database_username }} host=% password={{ keystone_database_password }} priv={{ keystone_database_name }}.*:ALL
+  run_once: true
+
+- name: Setup DB for keystone
+  shell: creates=/etc/keystone/db.synced /usr/bin/keystone-manage db_sync && touch /etc/keystone/db.synced
+  run_once: true
+
+- name: open firewall for keystone
+  firewalld: port={{ item[1] }} state=enabled permanent={{ item [0] }}
+  with_nested:
+    - [ true, false ]
+    - [ '5000/tcp', '35357/tcp' ]
+
+- name: Start the keystone services
+  service: name=openstack-keystone state=started enabled=yes
+  when: pacemaker_service_control == false
+
+- name: create the keystone resource within pacemaker
+  pcs_resource:
+    command: create
+    name: openstack-keystone
+    type: systemd:openstack-keystone
+    clone: yes
+    operations:
+      - action: monitor
+        options:
+          start-delay: 10s
+  run_once: true
+  when: pacemaker_service_control == true
+
+- name: Copy the keystonerc file
+  template: src=keystonerc.j2 dest=/root/keystonerc mode=0755
+
+- include: users-and-endpoints.yml

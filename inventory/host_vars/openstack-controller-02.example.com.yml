@@ -1,0 +1,2 @@
+---
+pacemaker_cluster_stonith_settings: fence_ipmilan auth=md5 ipaddr=openstack-controller-02-drac.example.com login=root passwd=secret action=reboot pcmk_host_check=static-list pcmk_host_list=openstack-controller-02.example.redhat.com

@@ -1,0 +1,28 @@
+---
+- name: allow binding to IPs not currently on this system
+  sysctl: name=net.ipv4.ip_nonlocal_bind value=1
+
+- name: install haproxy
+  yum: name={{ item }}
+  with_items:
+   - haproxy
+
+- name: copy haproxy configuration file
+  template: src=haproxy.cfg.j2 dest=/etc/haproxy/haproxy.cfg owner=root group=root mode=0644
+
+- name: start haproxy service
+  service: name=haproxy state=started enabled=yes
+  when: pacemaker_service_control == false
+
+- name: create the haproxy resource within pacemaker
+  pcs_resource:
+    command: create
+    name: haproxy
+    type: systemd:haproxy
+    clone: yes
+    operations:
+      - action: monitor
+        options:
+          start-delay: 10s
+  run_once: true
+  when: pacemaker_service_control == true

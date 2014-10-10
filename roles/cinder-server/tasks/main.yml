@@ -1,0 +1,90 @@
+---
+- name: install cinder packages
+  yum: name={{ item }}
+  with_items:
+    - openstack-cinder
+    - python-cinderclient
+
+- name: install gluster client packages
+  yum: name={{ item }}
+  with_items:
+    - glusterfs-fuse
+
+- name: copy cinder configuration file
+  template: src=cinder.conf.j2 dest=/etc/cinder/cinder.conf
+
+- name: copy glusterfs_shares configuration file
+  template: src=glusterfs_shares.j2 dest=/etc/cinder/glusterfs_shares
+
+- name: create cinder database
+  mysql_db: name=cinder
+  run_once: true
+
+- name: create cinder database user
+  mysql_user: name={{ cinder_database_username }} host=% password={{ cinder_database_password }} priv={{ cinder_database_name }}.*:ALL
+  run_once: true
+
+- name: Setup DB for cinder
+  shell: creates=/etc/cinder/db.synced /usr/bin/cinder-manage db sync && touch /etc/cinder/db.synced
+  run_once: true
+
+- name: open firewall for cinder
+  firewalld: port={{ item[1] }} state=enabled permanent={{ item [0] }}
+  with_nested:
+    - [ true, false ]
+    - [ '8776/tcp' ]
+
+- name: start cinder services and make sure they are running
+  service: name={{ item }} state=running enabled=yes
+  with_items:
+    - openstack-cinder-api
+    - openstack-cinder-scheduler
+    - openstack-cinder-volume
+  when: pacemaker_service_control == false
+
+- name: create the cinder-volume resource within pacemaker
+  pcs_resource:
+    command: create
+    name: openstack-cinder-volume
+    type: systemd:openstack-cinder-volume
+    clone: yes
+    operations:
+      - action: monitor
+        options:
+          start-delay: 10s
+  run_once: true
+  when: pacemaker_service_control == true
+
+- name: create the cinder-scheduler resource within pacemaker
+  pcs_resource:
+    command: create
+    name: openstack-cinder-scheduler
+    type: systemd:openstack-cinder-scheduler
+    clone: yes
+    operations:
+      - action: monitor
+        options:
+          start-delay: 10s
+  run_once: true
+  when: pacemaker_service_control == true
+
+- name: create the cinder-api resource within pacemaker
+  pcs_resource:
+    command: create
+    name: openstack-cinder-api
+    type: systemd:openstack-cinder-scheduler
+    clone: yes
+    operations:
+      - action: monitor
+        options:
+          start-delay: 10s
+  run_once: true
+  when: pacemaker_service_control == true
+
+- name: start cinder services and make sure they are running
+  service: name={{ item }} state=running enabled=yes
+  with_items:
+    - openstack-cinder-api
+    - openstack-cinder-scheduler
+    - openstack-cinder-volume
+  when: pacemaker_service_control == false

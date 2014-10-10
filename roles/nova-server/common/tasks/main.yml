@@ -1,0 +1,9 @@
+---
+- name: Install OpenStack nova packages.
+  yum: name={{ item }} state=installed
+  with_items:
+    - openstack-nova
+    - python-novaclient
+
+- name: copy configuration file for nova
+  template: src=nova.conf.j2 dest=/etc/nova/nova.conf

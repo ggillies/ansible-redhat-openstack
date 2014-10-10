@@ -1,0 +1,10 @@
+---
+openstack_auth_url: http://localhost:35357/v2.0
+openstack_login_username: admin
+openstack_login_password: admin
+openstack_login_tenant_name: admin
+openstack_image_id:
+openstack_region_name: RegionOne
+openstack_key_name: ansible
+openstack_flavor_id: 1
+openstack_net_id:

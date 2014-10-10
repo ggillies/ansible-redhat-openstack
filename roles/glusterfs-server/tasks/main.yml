@@ -1,0 +1,62 @@
+---
+- name: disable selinux
+  selinux: policy=targeted state=disabled
+
+- name: install glusterfs-server and xfsprogs
+  yum: name={{ item }}
+  with_items:
+    - glusterfs-server
+    - xfsprogs
+    - tuned
+    - lvm2
+
+- name: tune performance profile
+  shell: tuned-adm profile throughput-performance
+
+- name: enable and start glusterd
+  service: name=glusterd enabled=yes state=started
+
+- name: gluster probe all peers
+  shell: gluster peer probe {{ item }}
+  with_items: glusterfs_peers
+  run_once: true
+
+- name: ensure volume group data exists
+  lvg: vg={{ item.name }} pvs={{ item.pvs }} vg_options=""
+  with_items: glusterfs_volgroup
+
+- name:  create logical volumes for bricks
+  lvol:  vg=/dev/{{ item.vg }} lv={{ item.name }} size={{ item.size }}
+  with_items: glusterfs_bricks
+
+- name: create xfs filesystem on bricks
+  filesystem: fstype=xfs dev=/dev/{{ item.vg }}/{{ item.name }} opts="-i size=512"
+  with_items: glusterfs_bricks
+
+- name: create /bricks directory for bricks to be mounted
+  file: path=/bricks owner=root group=root mode=0755 state=directory
+
+- name: mount filesystem
+  mount: name=/bricks/{{ item.name }} src=/dev/{{ item.vg }}/{{ item.name }} fstype=xfs opts=noatime state=mounted
+  with_items: glusterfs_bricks
+
+- name: create brick directories
+  file: path=/bricks/{{ item.name }}/brick owner=root group=root mode=0755 state=directory
+  with_items: glusterfs_bricks
+
+- name: create gluster volumes
+  shell: creates=/var/lib/glusterd/vols/{{ item.name }} gluster volume create {{ item.name }} {{ item.create_options }} {{ item.brick_list }}
+  with_items: glusterfs_volumes
+  run_once: true
+
+- name: start gluster volumes
+  shell: creates=/var/lib/glusterd/vols/{{ item.name }}/run/{{ inventory_hostname }}-bricks-{{ item.name }}-brick.pid gluster volume start {{ item.name }}
+  with_items: glusterfs_volumes
+  run_once: true
+
+- name: apply gluster volume configurations
+  shell: gluster volume set {{ item.0.name }} {{ item.1 }}
+  with_subelements:
+    - glusterfs_volumes
+    - settings
+  run_once: true
