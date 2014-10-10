@@ -14,6 +14,14 @@
   service: name=haproxy state=started enabled=yes
   when: pacemaker_service_control == false
 
+- name: create the floating ip within pacemaker
+  pcs_resource:
+    command: create
+    name: public_vip
+    type: ocf::heartbeat:IPaddr2
+    options:
+      - ip: "{{ openstack_controller_public_ip }}"
+
 - name: create the haproxy resource within pacemaker
   pcs_resource:
     command: create
