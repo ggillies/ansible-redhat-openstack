@@ -7,10 +7,3 @@ openstack_controller_public_address: 10.10.150.12
 cinder_glusterfs_shares:
   - 10.10.150.14:/cinder
 glance_glusterfs_share: 10.10.150.14:/glance
-keystone_database_hostname: 10.10.150.12
-glance_database_hostname: 10.10.150.12
-nova_database_hostname: 10.10.150.12
-neutron_database_hostname: 10.10.150.12
-cinder_database_hostname: 10.10.150.12
-trove_database_hostname: 10.10.150.12
-heat_database_hostname: 10.10.150.12
