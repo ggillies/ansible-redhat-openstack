@@ -1,6 +1,6 @@
 ---
 dependencies:
-  - { role: pacemaker-cluster, pacemaker_cluster_nodes: "{{ groups['openstack-controller'] }}" }
+  - { role: pacemaker-cluster }
   - haproxy-server
   - mariadb-galera-server
   - rabbitmq-server

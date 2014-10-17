@@ -1,4 +1,4 @@
 ---
 dependencies:
   - { role: neutron-server/compute, neutron_database_hostname: "{{ openstack_controller_public_address }}" }
-  - { role: nova-server/compute }
+  - { role: nova-server/compute, nova_database_hostname: "{{ openstack_controller_public_address }}" }

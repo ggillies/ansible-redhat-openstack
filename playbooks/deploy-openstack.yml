@@ -4,22 +4,13 @@
     - common
 
 - hosts: openstack-controller
-  vars_files:
-    - ../roles/keystone-server/defaults/main.yml
-    - ../roles/mariadb-galera-server/defaults/main.yml
   roles:
-    - openstack-controller
+    - openstack/controller
 
 - hosts: openstack-compute
-  vars_files:
-    - ../roles/keystone-server/defaults/main.yml
-    - ../roles/mariadb-galera-server/defaults/main.yml
   roles:
-    - openstack-compute
+    - openstack/compute
 
 - hosts: openstack-network
-  vars_files:
-    - ../roles/keystone-server/defaults/main.yml
-    - ../roles/mariadb-galera-server/defaults/main.yml
   roles:
-    - openstack-network
+    - openstack/network
