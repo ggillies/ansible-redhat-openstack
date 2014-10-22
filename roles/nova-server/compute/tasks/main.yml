@@ -1,6 +1,12 @@
 - name: install glusterfs packages
   yum: name=glusterfs-fuse
 
+- name: install libvirt package
+  yum: name=libvirt
+
+- name: ensure libvirtd is running
+  service: name=libvirtd state=started enabled=yes
+
 #- name: open firewall for nova
 #  firewalld: port={{ item[1] }} state=enabled permanent={{ item [0] }}
 #  with_nested:
