@@ -9,14 +9,6 @@
 - name: symlink ml2 agent configuration as /etc/neutron/plugin.ini
   file: src=/etc/neutron/plugins/openvswitch/ovs_neutron_plugin.ini dest=/etc/neutron/plugin.ini owner=neutron group=neutron state=link
 
-- name: create interface file for tunnel traffic
-  template: src=../../common/templates/ifcfg.j2 dest=/etc/sysconfig/network-scripts/ifcfg-{{ neutron_server_tunnel_interface }} owner=root group=root mode=0644
-  register: tunnel_interface
-
-- name: restart networking service
-  service: name=network state=restarted
-  when: tunnel_interface.changed
-
 #- name: open firewall for vxlan
 #  firewalld: port={{ item[1] }} state=enabled permanent={{ item [0] }}
 #  with_nested:
