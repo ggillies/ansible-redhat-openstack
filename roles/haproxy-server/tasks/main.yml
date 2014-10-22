@@ -6,6 +6,7 @@
   yum: name={{ item }}
   with_items:
    - haproxy
+   - bind-utils
 
 - name: copy haproxy configuration file
   template: src=haproxy.cfg.j2 dest=/etc/haproxy/haproxy.cfg owner=root group=root mode=0644
@@ -15,18 +16,20 @@
   when: pacemaker_service_control == false
 
 - name: determine ipaddress for haproxy floating ip
-  shell: dig +short {{ openstack_controller_public_ip }} | tail -n1
+  shell: dig +short {{ openstack_controller_public_address }} | tail -n1
   register: ipaddr_output
   changed_when: false
-  always_run: yes
+  always_run: true
+  run_once: true
 
 - name: create the floating ip within pacemaker
   pcs_resource:
     command: create
     name: public_vip
-    type: ocf::heartbeat:IPaddr2
+    type: ocf:heartbeat:IPaddr2
     options:
-      - ip: "{{ ipaddr_output.stdout }}"
+      ip: "{{ ipaddr_output.stdout }}"
+  run_once: true
 
 - name: create the haproxy resource within pacemaker
   pcs_resource:
