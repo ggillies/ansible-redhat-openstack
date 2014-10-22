@@ -1,3 +1,2 @@
 ---
 neutron_server_tunnel_interface: em2
-neutron_server_local_ip: 172.16.0.4

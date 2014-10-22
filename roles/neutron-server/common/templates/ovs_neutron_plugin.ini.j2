@@ -76,7 +76,7 @@ tunnel_bridge = br-tun
 #
 # local_ip =
 {% if 'openstack-compute' in group_names or 'openstack-network' in group_names %}
-local_ip = {{ neutron_server_local_ip }}
+local_ip = {{ hostvars[inventory_hostname]['ansible_' + neutron_server_tunnel_interface]['ipv4']['address'] }}
 {% endif %}
 
 # (ListOpt) Comma-separated list of <physical_network>:<bridge> tuples
