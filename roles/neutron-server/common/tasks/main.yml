@@ -1,6 +1,8 @@
 ---
 # Tasks for the neutron controller node
 
+- include_vars: ../../../keystone-server/defaults/main.yml
+
 - name: Install packages for neutron
   yum: name={{ item }} state=installed
   with_items:

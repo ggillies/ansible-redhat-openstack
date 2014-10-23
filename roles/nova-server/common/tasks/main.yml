@@ -1,4 +1,6 @@
 ---
+- include_vars: ../../../keystone-server/defaults/main.yml
+
 - name: Install OpenStack nova packages.
   yum: name={{ item }} state=installed
   with_items:
