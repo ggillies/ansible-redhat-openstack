@@ -24,7 +24,7 @@
   run_once: true
 
 - name: create cluster
-  shell: creates=/var/lib/pacemaker/cib/cib.xml pcs cluster setup --start --name {{ pacemaker_cluster_name }} {{ pacemaker_cluster_nodes | join(' ') }}
+  shell: creates=/var/lib/pacemaker/cib/cib.xml pcs cluster setup --start --enable --name {{ pacemaker_cluster_name }} {{ pacemaker_cluster_nodes | join(' ') }}
   run_once: true
 
 - name: determine if stonith device already exists
