@@ -15,7 +15,8 @@
   run_once: true
 
 - name: create heat database user
-  mysql_user: name={{ heat_database_username }} host=% password={{ heat_database_password }} priv={{ heat_database_name }}.*:ALL
+  mysql_user: name={{ heat_database_username }} host={{ item }} password={{ heat_database_password }} priv={{ heat_database_name }}.*:ALL
+  with_items: "{{ play_hosts | union(['%', 'localhost']) }}"
   run_once: true
 
 - name: synchronise heat database

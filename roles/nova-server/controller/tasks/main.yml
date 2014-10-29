@@ -4,7 +4,8 @@
   run_once: true
 
 - name: create nova database user
-  mysql_user: name={{ nova_database_username }} host=% password={{ nova_database_password }} priv={{ nova_database_name }}.*:ALL
+  mysql_user: name={{ nova_database_username }} host={{ item }} password={{ nova_database_password }} priv={{ nova_database_name }}.*:ALL
+  with_items: "{{ play_hosts | union(['%', 'localhost']) }}"
   run_once: true
 
 - name: DB sync for the nova services

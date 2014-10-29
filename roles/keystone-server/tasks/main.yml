@@ -14,7 +14,8 @@
   run_once: true
 
 - name: create keystone database user
-  mysql_user: name={{ keystone_database_username }} host=% password={{ keystone_database_password }} priv={{ keystone_database_name }}.*:ALL
+  mysql_user: name={{ keystone_database_username }} host={{ item }} password={{ keystone_database_password }} priv={{ keystone_database_name }}.*:ALL append_privs=yes
+  with_items: "{{ play_hosts | union(['%', 'localhost']) }}"
   run_once: true
 
 - name: Setup DB for keystone

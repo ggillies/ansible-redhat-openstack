@@ -8,7 +8,8 @@
   run_once: true
 
 - name: create neutron database user
-  mysql_user: name={{ neutron_database_username }} host=% password={{ neutron_database_password }} priv={{ neutron_database_name }}.*:ALL
+  mysql_user: name={{ neutron_database_username }} host={{ item }} password={{ neutron_database_password }} priv={{ neutron_database_name }}.*:ALL
+  with_items: "{{ play_hosts | union(['%', 'localhost']) }}"
   run_once: true
 
 - name: DB sync for the neutron services
