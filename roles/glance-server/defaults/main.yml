@@ -6,4 +6,9 @@ glance_database_name: glance
 
 glance_admin_password: secrete
 
+glance_default_store: file
+
 pacemaker_service_control: false
+
+glance_rbd_store_user: ""
+glance_rbd_store_pool: glance

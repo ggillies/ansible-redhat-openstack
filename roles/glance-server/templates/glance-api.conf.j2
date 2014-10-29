@@ -10,6 +10,7 @@
 # by the known_stores option below.
 # Default: 'file'
 #default_store=file
+default_store={{ glance_default_store }}
 
 # List of which store classes and store class locations are
 # currently known to glance at startup.
@@ -19,8 +20,9 @@
 #      glance.store.swift.Store,
 #      glance.store.cinder.Store,
 #      glance.store.gridfs.Store,
-#known_stores=glance.store.filesystem.Store,
-#               glance.store.http.Store
+known_stores=glance.store.filesystem.Store,
+               glance.store.http.Store,
+               glance.store.rbd.Store
 
 
 # Maximum image size (in bytes) that may be uploaded through the
@@ -414,19 +416,19 @@ bind_host={{ ansible_default_ipv4.address }}
 # If using cephx authentication, this file should
 # include a reference to the right keyring
 # in a client.<USER> section
-#rbd_store_ceph_conf=/etc/ceph/ceph.conf
+rbd_store_ceph_conf=/etc/ceph/ceph.conf
 
 # RADOS user to authenticate as (only applicable if using cephx)
 # If <None>, a default will be chosen based on the client. section
 # in rbd_store_ceph_conf
-#rbd_store_user=<None>
+rbd_store_user={{ glance_rbd_store_user }}
 
 # RADOS pool in which images are stored
-#rbd_store_pool=images
+rbd_store_pool={{ glance_rbd_store_pool }}
 
 # RADOS images will be chunked into objects of this size (in megabytes).
 # For best performance, this should be a power of two
-#rbd_store_chunk_size=8
+rbd_store_chunk_size=8
 
 # ============ Sheepdog Store Options =============================
 

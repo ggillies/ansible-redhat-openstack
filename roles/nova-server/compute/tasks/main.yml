@@ -1,6 +1,12 @@
 - name: install glusterfs packages
   yum: name=glusterfs-fuse
 
+- name: install ceph client packages
+  yum: name={{ item }}
+  with_items:
+    - python-ceph
+    - ceph-common
+
 - name: install libvirt package
   yum: name=libvirt
 

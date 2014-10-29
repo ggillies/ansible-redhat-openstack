@@ -5,6 +5,12 @@
     - openstack-glance
     - python-glanceclient
 
+- name: install ceph client packages
+  yum: name={{ item }}
+  with_items:
+    - python-ceph
+    - ceph-common
+
 - name: Copy configuration files for glance
   template: src=glance-api.conf.j2 dest=/etc/glance/glance-api.conf
 
@@ -16,7 +22,8 @@
   run_once: true
 
 - name: create glance database user
-  mysql_user: name={{ glance_database_username }} host=% password={{ glance_database_password }} priv={{ glance_database_name }}.*:ALL
+  mysql_user: name={{ glance_database_username }} host={{ item }} password={{ glance_database_password }} priv={{ glance_database_name }}.*:ALL
+  with_items: "{{ play_hosts | union(['%', 'localhost']) }}"
   run_once: true
 
 - name: DB sync for Glance
