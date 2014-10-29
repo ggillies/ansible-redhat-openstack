@@ -369,7 +369,7 @@ osapi_volume_listen={{ ansible_default_ipv4.address }}
 
 # The Ceph pool where volume backups are stored. (string
 # value)
-#backup_ceph_pool=backups
+backup_ceph_pool={{ cinder_backup_ceph_pool }}
 
 # RBD stripe unit to use when creating a backup image.
 # (integer value)
@@ -439,7 +439,7 @@ osapi_volume_listen={{ ansible_default_ipv4.address }}
 
 # Driver to use for backups. (string value)
 # Deprecated group/name - [DEFAULT]/backup_service
-#backup_driver=cinder.backup.drivers.swift
+backup_driver=cinder.backup.drivers.ceph
 
 
 #
@@ -469,7 +469,7 @@ glance_host={{ openstack_controller_public_address }}
 #glance_api_servers=$glance_host:$glance_port
 
 # Version of the glance api to use (integer value)
-#glance_api_version=1
+glance_api_version=2
 
 # Number retries when downloading an image from glance
 # (integer value)
@@ -1518,7 +1518,7 @@ glusterfs_shares_config=/etc/cinder/glusterfs_shares
 
 # the RADOS pool in which rbd volumes are stored (string
 # value)
-#rbd_pool=rbd
+rbd_pool={{ cinder_rbd_pool }}
 
 # the RADOS client name for accessing rbd volumes - only set
 # when using cephx authentication (string value)
@@ -1825,7 +1825,7 @@ glusterfs_shares_config=/etc/cinder/glusterfs_shares
 #
 
 # Driver to use for volume creation (string value)
-volume_driver=cinder.volume.drivers.glusterfs.GlusterfsDriver
+volume_driver={{ cinder_volume_driver }}
 
 # Timeout for creating the volume to migrate to when
 # performing volume migration (seconds) (integer value)

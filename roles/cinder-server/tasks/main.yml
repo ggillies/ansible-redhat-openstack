@@ -5,23 +5,30 @@
     - openstack-cinder
     - python-cinderclient
 
-- name: install gluster client packages
+#- name: install gluster client packages
+#  yum: name={{ item }}
+#  with_items:
+#    - glusterfs-fuse
+
+- name: install ceph client packages
   yum: name={{ item }}
   with_items:
-    - glusterfs-fuse
+    - python-ceph
+    - ceph-common
 
 - name: copy cinder configuration file
   template: src=cinder.conf.j2 dest=/etc/cinder/cinder.conf
 
-- name: copy glusterfs_shares configuration file
-  template: src=glusterfs_shares.j2 dest=/etc/cinder/glusterfs_shares
+#- name: copy glusterfs_shares configuration file
+#  template: src=glusterfs_shares.j2 dest=/etc/cinder/glusterfs_shares
 
 - name: create cinder database
   mysql_db: name=cinder
   run_once: true
 
 - name: create cinder database user
-  mysql_user: name={{ cinder_database_username }} host=% password={{ cinder_database_password }} priv={{ cinder_database_name }}.*:ALL
+  mysql_user: name={{ cinder_database_username }} host={{ item }} password={{ cinder_database_password }} priv={{ cinder_database_name }}.*:ALL
+  with_items: "{{ play_hosts | union(['%', 'localhost']) }}"
   run_once: true
 
 - name: Setup DB for cinder

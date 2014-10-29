@@ -5,3 +5,7 @@ cinder_database_hostname: localhost
 cinder_database_name: cinder
 
 pacemaker_service_control: false
+
+cinder_volume_driver: cinder.volume.drivers.rbd.RBDDriver
+cinder_rbd_pool: cinder
+cinder_backup_ceph_pool: cinder_backup
