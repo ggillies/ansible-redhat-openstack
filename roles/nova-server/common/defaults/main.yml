@@ -3,3 +3,5 @@ nova_database_username: nova
 nova_database_password: nova
 nova_database_hostname: localhost
 nova_database_name: nova
+
+nova_nested_virtualisation: false

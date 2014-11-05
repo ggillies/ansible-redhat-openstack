@@ -23,3 +23,6 @@
   service: name={{ item }} state=started enabled=yes
   with_items:
    - openstack-nova-compute
+
+- include: nested_virt.yml
+  when: nova_nested_virtualisation
