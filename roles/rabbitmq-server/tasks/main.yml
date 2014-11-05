@@ -19,5 +19,9 @@
 - name: copy erlang cookie file
   copy: content={{ rabbitmq_server_erlang_cookie }} dest=/var/lib/rabbitmq/.erlang.cookie owner=rabbitmq group=rabbitmq mode=0400
 
-- name: start rabbitmq service
+- name: start rabbitmq service on one node only (avoid collisions)
+  service: name=rabbitmq-server state=started enabled=yes
+  run_once: true
+
+- name: start rabbitmq service on all nodes
   service: name=rabbitmq-server state=started enabled=yes
