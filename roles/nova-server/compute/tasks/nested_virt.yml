@@ -1,0 +1,3 @@
+---
+- name: copy modprobe file to enable nested virtualisation
+  copy: content="kvm_intel nested=Yes" dest=/etc/modprobe.d/nested-kvm.conf owner=root group=root mode=0644
