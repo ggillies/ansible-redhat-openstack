@@ -10,7 +10,7 @@
 # tenant_network_type = local
 # Example: tenant_network_type = gre
 # Example: tenant_network_type = vxlan
-tenant_network_type = vxlan
+tenant_network_type = {{ neutron_tenant_network_types }}
 
 # (ListOpt) Comma-separated list of
 # <physical_network>[:<vlan_min>:<vlan_max>] tuples enumerating ranges
@@ -20,7 +20,7 @@ tenant_network_type = vxlan
 # available for tenant network allocation if tenant_network_type is
 # 'vlan'. If empty, only gre, vxlan and local networks may be created.
 #
-network_vlan_ranges =
+network_vlan_ranges = {{ neutron_network_vlan_ranges }}
 # Example: network_vlan_ranges = physnet1:1000:2999
 
 # (BoolOpt) Set to True in the server and the agents to enable support
@@ -32,7 +32,7 @@ network_vlan_ranges =
 #          tunneling.
 #
 # enable_tunneling = False
-enable_tunneling = True
+enable_tunneling = {{ neutron_enable_tunneling }}
 
 # (StrOpt) The type of tunnel network, if any, supported by the plugin. If
 # this is set, it will cause tunneling to be enabled. If this is not set and
@@ -75,7 +75,7 @@ tunnel_bridge = br-tun
 # this hypervisor.
 #
 # local_ip =
-{% if 'openstack-compute' in group_names or 'openstack-network' in group_names %}
+{% if ('openstack-compute' in group_names or 'openstack-network' in group_names) and neutron_tenant_network_types == 'vxlan' %}
 local_ip = {{ hostvars[inventory_hostname]['ansible_' + neutron_server_tunnel_interface]['ipv4']['address'] }}
 {% endif %}
 
@@ -87,9 +87,7 @@ local_ip = {{ hostvars[inventory_hostname]['ansible_' + neutron_server_tunnel_in
 # port. All physical networks listed in network_vlan_ranges on the
 # server should have mappings to appropriate bridges on each agent.
 #
-{% if 'openstack-network' in group_names %}
-bridge_mappings = physnet1:br-ex
-{% endif %}
+bridge_mappings = {{ neutron_bridge_mappings }}
 # Example: bridge_mappings = physnet1:br-eth1
 
 [agent]

@@ -3,3 +3,8 @@ neutron_database_username: neutron
 neutron_database_password: neutron
 neutron_database_hostname: localhost
 neutron_database_name: neutron
+
+neutron_tenant_network_types: vxlan
+neutron_network_vlan_ranges: ""
+neutron_bridge_mappings: "physnet1:br-ex"
+neutron_enable_tunneling: "True"
